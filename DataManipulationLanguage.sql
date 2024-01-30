@@ -139,33 +139,63 @@ BEGIN
     RETURN (@fullName)
 END;
 
-
-
-CREATE FUNCTION Account_Owner(
-@P_Account_Nummber VARCHAR(16)
+CREATE PROCEDURE TransactionProcedure(
+@P_Source_AccountNumber VARCHAR(16),
+@P_Destination_AccountNumber VARCHAR(16),
+@P_Amount DECIMAL(15,2)
 )
-RETURNS VARCHAR(100)
-AS 
+AS
 BEGIN
-    DECLARE @fullName VARCHAR(100)
-    SELECT @fullName = (name +' '+ lastname) 
-    FROM Users, Accounts
-    WHERE @P_Account_Nummber = account_number AND Accounts.username = Users.username
-    RETURN (@fullName)
+    DECLARE @Current_Amount DECIMAL(15,2)
+    SELECT @Current_Amount = amount FROM Accounts WHERE @P_Source_AccountNumber = account_number
+    IF @Current_Amount >= @P_Amount
+        BEGIN
+        BEGIN TRANSACTION;
+        BEGIN TRY
+            DECLARE @Current_Date DATE = CAST(GETDATE() AS DATE);
+            DECLARE @Current_Time TIME = CAST(GETDATE() AS TIME);
+            INSERT INTO Transactions
+            VALUES(@P_Source_AccountNumber,
+                @P_Destination_AccountNumber,
+                @P_Amount,
+                @Current_Date,
+                @Current_Time
+                )
+            UPDATE Accounts
+            set amount = amount - @P_Amount 
+            WHERE @P_Source_AccountNumber = account_number
+
+            UPDATE Accounts
+            set amount = amount + @P_Amount 
+            WHERE @P_Destination_AccountNumber = account_number
+
+        COMMIT TRANSACTION;
+        END TRY
+        BEGIN CATCH
+            ROLLBACK TRANSACTION;
+            THROW;
+        END CATCH
+    END;
+    ELSE
+    BEGIN
+        PRINT 'Not successful!'
+    END;
 END;
 
 
 
 
+-- EXECUTE TransactionProcedure @P_Source_AccountNumber = '5859831103511167',
+-- @P_Destination_AccountNumber = '5810121345678092', @P_Amount = 10000
 
+-- SELECT * FROM Transactions
 
+-- -- EXECUTE New_Account @P_Account_Number = '5810121345678090',@P_Username = 'Mohsen', 
+-- -- @P_Amount = '556000000', @P_Block = 1 , @P_Loan_Status = 1
 
--- EXECUTE New_Account @P_Account_Number = '5810121345678090',@P_Username = 'Mohsen', 
--- @P_Amount = '556000000', @P_Block = 1 , @P_Loan_Status = 1
+-- -- -- EXECUTE Change_Password @P_Username = 'Amiir', @P_Current_Password = '456', @P_New_Password = '789'
 
--- -- EXECUTE Change_Password @P_Username = 'Amiir', @P_Current_Password = '456', @P_New_Password = '789'
-
--- SELECT * FROM Accounts_Info_byNumber('5859831103511177')
+-- -- SELECT * FROM Accounts_Info_byNumber('5859831103511177')
 -- SELECT * FROM Accounts
 -- SELECT * FROM Users
 -- PRINT dbo.Account_Owner ('5810121345678092')
