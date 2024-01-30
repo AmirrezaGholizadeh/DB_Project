@@ -182,20 +182,31 @@ BEGIN
     END;
 END;
 
+CREATE FUNCTION Transactions_byNumber(
+@P_Account_Number VARCHAR(25),
+@P_Number INT
+)
+RETURNS TABLE
+AS 
+RETURN (SELECT TOP (@P_Number) * 
+FROM Transactions 
+WHERE @P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber
+ORDER BY date DESC, time DESC);
+
 
 
 
 -- EXECUTE TransactionProcedure @P_Source_AccountNumber = '5859831103511167',
 -- @P_Destination_AccountNumber = '5810121345678092', @P_Amount = 10000
 
--- SELECT * FROM Transactions
+-- SELECT TOP 2 * FROM Transactions ORDER BY date DESC, time  DESC 
 
 -- -- EXECUTE New_Account @P_Account_Number = '5810121345678090',@P_Username = 'Mohsen', 
 -- -- @P_Amount = '556000000', @P_Block = 1 , @P_Loan_Status = 1
 
 -- -- -- EXECUTE Change_Password @P_Username = 'Amiir', @P_Current_Password = '456', @P_New_Password = '789'
 
--- -- SELECT * FROM Accounts_Info_byNumber('5859831103511177')
+-- SELECT * FROM Transactions_byNumber('5859831103511167', 1)
 -- SELECT * FROM Accounts
 -- SELECT * FROM Users
 -- PRINT dbo.Account_Owner ('5810121345678092')
