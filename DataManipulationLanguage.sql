@@ -193,6 +193,18 @@ FROM Transactions
 WHERE @P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber
 ORDER BY date DESC, time DESC);
 
+CREATE FUNCTION Transactions_byDate(
+@P_Account_Number VARCHAR(25),
+@P_StartDate DATE,
+@P_EndDate DATE
+)
+RETURNS TABLE
+AS 
+RETURN (SELECT * 
+FROM Transactions 
+WHERE date BETWEEN @P_StartDate AND @P_EndDate AND 
+@P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber);
+
 
 
 
@@ -206,7 +218,7 @@ ORDER BY date DESC, time DESC);
 
 -- -- -- EXECUTE Change_Password @P_Username = 'Amiir', @P_Current_Password = '456', @P_New_Password = '789'
 
--- SELECT * FROM Transactions_byNumber('5859831103511167', 1)
+-- SELECT * FROM Transactions_byDate('5859831103511167', '2024-01-30', '2024-01-30')
 -- SELECT * FROM Accounts
 -- SELECT * FROM Users
 -- PRINT dbo.Account_Owner ('5810121345678092')
