@@ -36,7 +36,8 @@ AS
 BEGIN
     IF NOT EXISTS (SELECT * FROM Users WHERE @P_Username = username)
     BEGIN
-        PRINT 'The username doesn''t exist!'
+        INSERT INTO Messages 
+        VALUES('The username doesn''t exist!')
     END;
 
     ELSE
@@ -49,11 +50,13 @@ BEGIN
 
         IF @Stored_Password = @hashedPassword
         BEGIN
-            PRINT'Correct';
+            INSERT INTO Messages 
+            VALUES('Correct')
         END;
         ELSE
         BEGIN
-            PRINT 'Discorrect';
+            INSERT INTO Messages 
+            VALUES('Discorrect!')
         END;
     END;
 END;
@@ -106,8 +109,9 @@ CREATE PROCEDURE New_Account(
 )
 AS
 BEGIN
+    DECLARE @Current_Date DATE = CAST(GETDATE() AS DATE);
     INSERT INTO Accounts
-    VALUES(@P_Account_Number, @P_Username, @P_Amount, @P_Block, @P_Loan_Status);
+    VALUES(@P_Account_Number, @P_Username, @P_Amount, @P_Block, @P_Loan_Status,@Current_Date);
 END;
 
 

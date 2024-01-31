@@ -15,6 +15,7 @@ username VARCHAR(25),
 amount DECIMAL(15,2),
 block BIT,
 loan_status BIT,
+date DATE,
 PRIMARY KEY(account_number),
 FOREIGN KEY (username) REFERENCES Users
 );
@@ -27,4 +28,6 @@ date DATE,
 time TIME,
 PRIMARY KEY(source_AccountNumber, destination_AccountNumber, date, time)
 )
+
+ create table Messages (message varchar(256))
 
