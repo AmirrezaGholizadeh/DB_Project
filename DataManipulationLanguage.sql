@@ -116,7 +116,7 @@ END;
 
 
 
-CREATE FUNCTION Acounts_Info_byID(
+CREATE FUNCTION Accounts_Info_byID(
 @P_Username VARCHAR(25)
 )
 RETURNS TABLE
@@ -199,16 +199,15 @@ ORDER BY date DESC, time DESC);
 
 CREATE FUNCTION Transactions_byDate(
 @P_Account_Number VARCHAR(25),
-@P_StartDate DATE,
-@P_EndDate DATE
+@P_StartDate VARCHAR(60),
+@P_EndDate VARCHAR(60)
 )
 RETURNS TABLE
-AS 
+AS
 RETURN (SELECT * 
 FROM Transactions 
 WHERE date BETWEEN @P_StartDate AND @P_EndDate AND 
 @P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber);
-
 
 
 
@@ -225,7 +224,7 @@ WHERE date BETWEEN @P_StartDate AND @P_EndDate AND
 -- SELECT * FROM Transactions_byDate('5859831103511167', '2024-01-30', '2024-01-30')
 -- SELECT * FROM Accounts
 -- SELECT * FROM Users
--- PRINT dbo.Account_Owner ('5810121345678092')
+-- PRINT dbo.   
 
 
 

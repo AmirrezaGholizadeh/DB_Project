@@ -21,5 +21,18 @@
             <a href="/signup">Sign Up</a>
         </form>
     </div>
+
+    <script>
+        // Assuming 'message' is a variable passed from Flask
+        var message = "{{ message }}";
+
+        // Check if the message is equal to "Unsuccessful"
+        if (message === "Unsuccessful") {
+            // Show a pop-up alert
+            alert('Unsuccessful!');
+        } else {
+            // Do nothing or perform other actions
+        }
+    </script>
 </body>
 </html>

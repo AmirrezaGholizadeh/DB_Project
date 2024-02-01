@@ -27,45 +27,56 @@ USERNAME = []
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+    try:
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
 
-        cursor.execute(f"EXECUTE Log_In @P_Username = {username}, @P_Current_Password = {password}")
-        conn.commit()
-        cursor.execute('select * from Messages')
+            cursor.execute(f"EXECUTE Log_In @P_Username = {username}, @P_Current_Password = {password}")
+            conn.commit()
+            cursor.execute('select * from Messages')
 
-        for row in cursor.fetchall():
-            print(row[0])
-            result = row[0]
+            for row in cursor.fetchall():
+                print(row[0])
+                result = row[0]
 
-        cursor.execute('DELETE from Messages')
-        conn.commit()
+            cursor.execute('DELETE from Messages')
+            conn.commit()
 
-        if(result == 'Correct'):
-            USERNAME.append(username)
-            return redirect('/')
-        else:
-            print("Try again")
+            if(result == 'Correct'):
+                USERNAME.append(username)
+                return redirect('/')
+            else:
+                message = "Unsuccessful"
+                return render_template('login.html', message = message)
+    except Exception as e:
+        message = "Unsuccessful"
+        return render_template('login.html', message = message)
 
 
     return render_template('login.html')
 
 @app.route('/signup', methods = ['GET', 'POST'])
 def signup():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        name = request.form.get('name')
-        lastname = request.form.get('lastname')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        password = request.form.get('password')
+    message = ""
+    try:
+        if request.method == 'POST':
+            username = request.form.get('username')
+            name = request.form.get('name')
+            lastname = request.form.get('lastname')
+            email = request.form.get('email')
+            phone = request.form.get('phone')
+            password = request.form.get('password')
 
-        cursor.execute(f"EXECUTE Register @P_Username = {username}, @P_Password = {password}, @P_Name = {name}, @P_Lastname = {lastname}, @P_Email = {email}, @P_Phone_Number = {phone}")
-        conn.commit()
-        return redirect('/login')
+            cursor.execute(f"EXECUTE Register @P_Username = {username}, @P_Password = {password}, @P_Name = {name}, @P_Lastname = {lastname}, @P_Email = {email}, @P_Phone_Number = {phone}")
+            conn.commit()
+            return redirect('/login')
+    except Exception as e:
+        message = "Unsuccessful"
+        return render_template('signup.html', message = message)
 
-    return render_template('signup.html')
+
+    return render_template('signup.html', message = message)
             
 # @app.route('/signup', methods = ['GET', 'POST'])
 # def signup():
@@ -85,18 +96,21 @@ def signup():
 
 @app.route('/', methods = ['GET', 'POST'])
 def main():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        name = request.form.get('name')
-        lastname = request.form.get('lastname')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        password = request.form.get('password')
+    try:
+        if request.method == 'POST':
+            username = request.form.get('username')
+            name = request.form.get('name')
+            lastname = request.form.get('lastname')
+            email = request.form.get('email')
+            phone = request.form.get('phone')
+            password = request.form.get('password')
 
-        cursor.execute(f"EXECUTE Register @P_Username = {username}, @P_Password = {password}, @P_Name = {name}, @P_Lastname = {lastname}, @P_Email = {email}, @P_Phone_Number = {phone}")
-        conn.commit()
-        return redirect('/')
-
+            cursor.execute(f"EXECUTE Register @P_Username = {username}, @P_Password = {password}, @P_Name = {name}, @P_Lastname = {lastname}, @P_Email = {email}, @P_Phone_Number = {phone}")
+            conn.commit()
+            return redirect('/')
+    except Exception as e:
+        return render_template('main.html')
+    
     return render_template('main.html')
 
 @app.route('/newaccount', methods = ['GET', 'POST'])
@@ -114,8 +128,8 @@ def newaccount():
 
     return render_template('newaccount.html')
 
-@app.route('/accountinformation', methods = ['GET', 'POST'])
-def accountinformation():
+@app.route('/transactions', methods = ['GET', 'POST'])
+def transactions():
     if request.method == 'POST':
         number = request.form.get('number')
         startDate = request.form.get('start')
@@ -123,15 +137,66 @@ def accountinformation():
         NaccountNumber = request.form.get('Naccount')
         DaccountNumber = request.form.get('Daccount')
 
-        print(startDate)
-
         if(startDate and endDate):
-            cursor.execute(f"SELECT * FROM Transactions_byDate({DaccountNumber}, {startDate}, {endDate})")
+            # cursor.execute(f"SELECT * FROM Transactions_byDate({DaccountNumber}, {startDate}, {endDate})")
+            cursor.execute("SELECT * FROM Transactions_byDate(?, ?, ?)", DaccountNumber, startDate, endDate)
+            # cursor.execute("SELECT * FROM Transactions_byDate('5859831103511166', '2024-02-01', '2024-02-01')")
             for row in cursor.fetchall():
                 print(row)
+        if(number and NaccountNumber):
+            cursor.execute("SELECT * FROM Transactions_byNumber(?, ?)", NaccountNumber, number)
+            # cursor.execute("SELECT * FROM Transactions_byDate('5859831103511166', '2024-02-01', '2024-02-01')")
+            for row in cursor.fetchall():
+                print(row)
+    
+    return render_template("transactions.html")
+
+@app.route('/accountinformationuserid', methods = ['GET', 'POST'])
+def accountinformationUserID():
+    if request.method == 'POST':
+        userID = request.form.get('userID')
+
+        # if(number):
+        #     cursor.execute(f"SELECT * FROM Accounts_Info_byNumber({str(number)})")
+        #     # cursor.execute("SELECT * FROM Transactions_byDate('5859831103511166', '2024-02-01', '2024-02-01')")
+        #     for row in cursor.fetchall():
+        #         print(row)
+        cursor.execute(f"SELECT * FROM Accounts_Info_byID(?)", userID)
+        data_from_db = cursor.fetchall()
+        return render_template("accountinformationUserID.html", data_from_db = data_from_db)
+    
+    return render_template("accountinformationUserID.html")
+
+@app.route('/accountinformationnumber', methods = ['GET', 'POST'])
+def accountinformationNumber():
+    if request.method == 'POST':
+        number = request.form.get('account')
+
+        # if(number):
+        #     cursor.execute(f"SELECT * FROM Accounts_Info_byNumber({str(number)})")
+        #     # cursor.execute("SELECT * FROM Transactions_byDate('5859831103511166', '2024-02-01', '2024-02-01')")
+        #     for row in cursor.fetchall():
+        #         print(row)
+        cursor.execute(f"SELECT * FROM Accounts_Info_byNumber({number})")
+        data_from_db = cursor.fetchall()
+        return render_template("accountinformationNumber.html", data_from_db = data_from_db)
+    
+    return render_template("accountinformationNumber.html")
+        
+@app.route('/moneytransfer', methods = ['GET', 'POST'])
+def moneytransfer():
+    if request.method == 'POST':
+        source = request.form.get('source')
+        destination = request.form.get('destination')
+        amount = request.form.get('amount')
+
+        
+        cursor.execute(f"EXECUTE TransactionProcedure @P_Source_AccountNumber = {source}, @P_Destination_AccountNumber = {destination}, @P_Amount = {amount}")
+        conn.commit()
         
       
 
-    return render_template('accountinformation.html')
+    return render_template('moneytransfer.html')
+
 if __name__ == "__main__":
     app.run(debug=True)
