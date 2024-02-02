@@ -151,8 +151,9 @@ CREATE PROCEDURE TransactionProcedure(
 AS
 BEGIN
     DECLARE @Current_Amount DECIMAL(15,2)
-    SELECT @Current_Amount = amount FROM Accounts WHERE @P_Source_AccountNumber = account_number
-    IF @Current_Amount >= @P_Amount
+    DECLARE @Current_Block BIT
+    SELECT @Current_Amount = amount, @Current_Block = block FROM Accounts WHERE @P_Source_AccountNumber = account_number
+    IF @Current_Amount >= @P_Amount AND @Current_Block = 0
         BEGIN
         BEGIN TRANSACTION;
         BEGIN TRY
@@ -173,6 +174,9 @@ BEGIN
             set amount = amount + @P_Amount 
             WHERE @P_Destination_AccountNumber = account_number
 
+            INSERT INTO Messages 
+            VALUES('Correct')
+
         COMMIT TRANSACTION;
         END TRY
         BEGIN CATCH
@@ -182,9 +186,12 @@ BEGIN
     END;
     ELSE
     BEGIN
-        PRINT 'Not successful!'
+        INSERT INTO Messages 
+        VALUES('Wrong!')
     END;
 END;
+
+DROP PROCEDURE TransactionProcedure
 
 CREATE FUNCTION Transactions_byNumber(
 @P_Account_Number VARCHAR(25),
@@ -207,7 +214,7 @@ AS
 RETURN (SELECT * 
 FROM Transactions 
 WHERE date BETWEEN @P_StartDate AND @P_EndDate AND 
-@P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber);
+(@P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber));
 
 
 CREATE PROCEDURE Block(
@@ -256,6 +263,101 @@ BEGIN
     END;
 END;
 
+CREATE FUNCTION Info_Payment_byNumber(
+    @P_Account_Number VARCHAR(16)
+)
+RETURNS TABLE
+AS
+RETURN (select * from Payments where @P_Account_Number = account_number);
+
+CREATE PROCEDURE Pay_Loan(
+    @P_Account_Number VARCHAR(16)
+)
+AS
+BEGIN
+    IF EXISTS (select * 
+                from Accounts 
+                where @P_Account_Number = Accounts.account_number and Accounts.loan_status = 1)
+        BEGIN
+            DECLARE @P_Payment_Amount DECIMAL(15, 2)
+            DECLARE @P_Account_Amount DECIMAL(15, 2)
+            select @P_Payment_Amount = amount / 12 from Loans where @P_Account_Number = amount;
+            select @P_Account_Amount = amount from Accounts where @P_Account_Number = amount;
+            IF @P_Payment_Amount <= @P_Account_Amount
+                BEGIN
+                    UPDATE Loans
+                    set remain_payment = remain_payment - 1
+                    where Loans.account_number = @P_Account_Number;
+                    UPDATE Payments
+                    set is_paid = 1
+                    where account_number = @P_Account_Number and date <= GETDATE();
+                    
+                    INSERT INTO Messages
+                    VALUES('Successfully Paid')
+                END;
+            ELSE
+                BEGIN
+                    INSERT INTO Messages
+                    VALUES('Dont have enough money!')
+                END;
+        END;
+        ELSE
+            BEGIN
+                INSERT INTO Messages
+                VALUES('You dont have loans')
+            END;
+END;
+
+
+CREATE PROCEDURE Get_New_Loan(
+    @P_Username VARCHAR(25),
+    @P_Account_Number VARCHAR(16),
+    @P_Amount DECIMAL(15, 2)
+)
+AS
+BEGIN
+    IF NOT EXISTS(select * from Accounts where @P_Account_Number = account_number)
+        BEGIN
+            INSERT INTO Messages
+            VALUES('The username doesnt exist')
+        END
+    ELSE
+        BEGIN
+            IF EXISTS (select * 
+                from Accounts 
+                where @P_Account_Number = account_number and loan_status = 1)
+                BEGIN
+                    INSERT INTO Messages
+                    VALUES('You must finish your payments')
+                END;
+            ELSE
+                BEGIN
+                    -- Add new loan
+                    UPDATE Accounts
+                    set loan_status = 1, amount = @P_Amount + amount
+                    where @P_Account_Number = account_number;
+                    INSERT INTO Loans(username, account_number, amount, remain_payment, date)
+                    VALUES (@P_Username, @P_Account_Number, @P_Amount, 12, GETDATE());
+                    DECLARE @payment_times INTEGER
+                    set @payment_times = 1
+                    while @payment_times < 13
+                        BEGIN
+                            INSERT INTO Payments
+                            VALUES (@P_Account_Number, @P_Amount, GETDATE() + 30 * @Payment_times, 0);
+                            set @payment_times = @payment_times + 1
+                        END
+                    INSERT INTO Messages
+                    VALUES('Successfully')
+                END;
+        END;
+END;
+
+CREATE FUNCTION Loan_List_byUsername(
+@P_username VARCHAR(25)
+)
+RETURNS TABLE
+AS
+RETURN (select * from Loans where @P_username = username);
 
 
 

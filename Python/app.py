@@ -1,6 +1,6 @@
 from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
-import pyodbc
+import pyodbc, random
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://Amirreza:Amirreza?!1381@localhost/db_name?driver=ODBC+Driver+17+for+SQL+Server'
@@ -12,18 +12,8 @@ cursor = conn.cursor()
 db = SQLAlchemy(app)
 
 USERNAME = []
+PASSWORD = []
 
-# class User(db.Model):
-#     username = db.Column(db.String(25),unique=True ,primary_key=True, nullable=False)
-#     password = db.Column(db.String(256), nullable=False)
-#     name = db.Column(db.String(50))
-#     lastname = db.Column(db.String(50))
-#     email = db.Column(db.String(50))
-#     phone_number = db.Column(db.String(11))
-#     salt = db.Column(db.String(36), primary_key=True,unique=True, nullable=False)
-
-#     def __repr__(self):
-#         return f'<User {self.username}>'
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
@@ -78,21 +68,6 @@ def signup():
 
     return render_template('signup.html', message = message)
             
-# @app.route('/signup', methods = ['GET', 'POST'])
-# def signup():
-#     if request.method == 'POST':
-#         username = request.form.get('username')
-#         name = request.form.get('name')
-#         lastname = request.form.get('lastname')
-#         email = request.form.get('email')
-#         phone = request.form.get('phone')
-#         password = request.form.get('password')
-
-#         cursor.execute(f"EXECUTE Register @P_Username = {username}, @P_Password = {password}, @P_Name = {name}, @P_Lastname = {lastname}, @P_Email = {email}, @P_Phone_Number = {phone}")
-#         conn.commit()
-#         return redirect('main.html')
-
-#     return render_template('signup.html')
 
 @app.route('/', methods = ['GET', 'POST'])
 def main():
@@ -128,39 +103,39 @@ def newaccount():
 
     return render_template('newaccount.html')
 
-@app.route('/transactions', methods = ['GET', 'POST'])
-def transactions():
+@app.route('/transactionsdate', methods = ['GET', 'POST'])
+def transactionsDate():
     if request.method == 'POST':
-        number = request.form.get('number')
         startDate = request.form.get('start')
         endDate = request.form.get('end')
-        NaccountNumber = request.form.get('Naccount')
-        DaccountNumber = request.form.get('Daccount')
+        accountNumber = request.form.get('account')
 
-        if(startDate and endDate):
-            # cursor.execute(f"SELECT * FROM Transactions_byDate({DaccountNumber}, {startDate}, {endDate})")
-            cursor.execute("SELECT * FROM Transactions_byDate(?, ?, ?)", DaccountNumber, startDate, endDate)
-            # cursor.execute("SELECT * FROM Transactions_byDate('5859831103511166', '2024-02-01', '2024-02-01')")
-            for row in cursor.fetchall():
-                print(row)
-        if(number and NaccountNumber):
-            cursor.execute("SELECT * FROM Transactions_byNumber(?, ?)", NaccountNumber, number)
-            # cursor.execute("SELECT * FROM Transactions_byDate('5859831103511166', '2024-02-01', '2024-02-01')")
-            for row in cursor.fetchall():
-                print(row)
+        cursor.execute("SELECT * FROM Transactions_byDate(?, ?, ?)", accountNumber, startDate, endDate)
     
-    return render_template("transactions.html")
+        data_from_db = cursor.fetchall()
+        return render_template("transactionsDate.html", data_from_db = data_from_db)
+    
+    return render_template("transactionsDate.html")
+
+@app.route('/transactionsnumber', methods = ['GET', 'POST'])
+def transactionsNumber():
+    if request.method == 'POST':
+        number = request.form.get('number')
+        accountNumber = request.form.get('account')
+
+      
+       
+        cursor.execute("SELECT * FROM Transactions_byNumber(?, ?)", accountNumber, number)
+        data_from_db = cursor.fetchall()
+        return render_template("transactionsNumber.html", data_from_db = data_from_db)
+    
+    return render_template("transactionsNumber.html")
 
 @app.route('/accountinformationuserid', methods = ['GET', 'POST'])
 def accountinformationUserID():
     if request.method == 'POST':
         userID = request.form.get('userID')
 
-        # if(number):
-        #     cursor.execute(f"SELECT * FROM Accounts_Info_byNumber({str(number)})")
-        #     # cursor.execute("SELECT * FROM Transactions_byDate('5859831103511166', '2024-02-01', '2024-02-01')")
-        #     for row in cursor.fetchall():
-        #         print(row)
         cursor.execute(f"SELECT * FROM Accounts_Info_byID(?)", userID)
         data_from_db = cursor.fetchall()
         return render_template("accountinformationUserID.html", data_from_db = data_from_db)
@@ -172,11 +147,7 @@ def accountinformationNumber():
     if request.method == 'POST':
         number = request.form.get('account')
 
-        # if(number):
-        #     cursor.execute(f"SELECT * FROM Accounts_Info_byNumber({str(number)})")
-        #     # cursor.execute("SELECT * FROM Transactions_byDate('5859831103511166', '2024-02-01', '2024-02-01')")
-        #     for row in cursor.fetchall():
-        #         print(row)
+
         cursor.execute(f"SELECT * FROM Accounts_Info_byNumber({number})")
         data_from_db = cursor.fetchall()
         return render_template("accountinformationNumber.html", data_from_db = data_from_db)
@@ -185,18 +156,51 @@ def accountinformationNumber():
         
 @app.route('/moneytransfer', methods = ['GET', 'POST'])
 def moneytransfer():
-    if request.method == 'POST':
-        source = request.form.get('source')
-        destination = request.form.get('destination')
-        amount = request.form.get('amount')
+    try:
+        if request.method == 'POST':
+            source = request.form.get('source')
+            destination = request.form.get('destination')
+            amount = request.form.get('amount')
+            password = request.form.get('password') 
+        
+            result = ""
+            print(PASSWORD[-1])
+            print(password)
+            if(str(password) == str(PASSWORD[-1])):
+                print("salam")
+                cursor.execute(f"EXECUTE TransactionProcedure @P_Source_AccountNumber = {source}, @P_Destination_AccountNumber = {destination}, @P_Amount = {amount}")
+                conn.commit()
+                cursor.execute('select * from Messages')
 
-        
-        cursor.execute(f"EXECUTE TransactionProcedure @P_Source_AccountNumber = {source}, @P_Destination_AccountNumber = {destination}, @P_Amount = {amount}")
-        conn.commit()
-        
-      
+                for row in cursor.fetchall():
+                    print(row[0])
+                    result = row[0]
+
+                cursor.execute('DELETE from Messages')
+                conn.commit()
+
+            print(result)
+            if(result == "Correct"):
+                PASSWORD.clear()
+                message = "Successful"
+                return render_template('moneytransfer.html', message = message)
+            else: 
+                PASSWORD.clear()
+                message = "Unsuccessful"
+                return render_template('moneytransfer.html', message = message)
+    except Exception as e:
+        message = "Unsuccessful"
+        return render_template('moneytransfer.html',  message = message)
 
     return render_template('moneytransfer.html')
+
+@app.route('/generatepass', methods = ['GET', 'POST'])
+def generatepass():
+    if request.method == 'POST':
+        random_number = random.randint(100000,999999)
+        PASSWORD.append(random_number)
+        passwordMessage = random_number
+        return render_template('moneytransfer.html', passwordMessage = passwordMessage)
 
 if __name__ == "__main__":
     app.run(debug=True)

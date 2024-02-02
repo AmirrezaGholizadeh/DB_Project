@@ -29,5 +29,24 @@ time TIME,
 PRIMARY KEY(source_AccountNumber, destination_AccountNumber, date, time)
 )
 
- create table Messages (message varchar(256))
+create table Messages (message varchar(256))
 
+CREATE TABLE Loans (
+    username VARCHAR(25),
+    account_number VARCHAR(16),
+    amount DECIMAL(15, 2),
+    remain_payment INTEGER,
+    date DATE,
+    PRIMARY KEY (account_number),
+    FOREIGN KEY (account_number) REFERENCES Accounts(account_number),
+    FOREIGN KEY (username) REFERENCES Users(username)
+);
+
+CREATE TABLE Payments (
+    account_number VARCHAR(16),
+    amount DECIMAL(15, 2),
+    date DATE,
+    is_paid BIT,
+    PRIMARY KEY (account_number),
+    FOREIGN KEY (account_number) REFERENCES Loans(account_number)
+);
