@@ -164,10 +164,7 @@ def moneytransfer():
             password = request.form.get('password') 
         
             result = ""
-            print(PASSWORD[-1])
-            print(password)
             if(str(password) == str(PASSWORD[-1])):
-                print("salam")
                 cursor.execute(f"EXECUTE TransactionProcedure @P_Source_AccountNumber = {source}, @P_Destination_AccountNumber = {destination}, @P_Amount = {amount}")
                 conn.commit()
                 cursor.execute('select * from Messages')
@@ -179,7 +176,6 @@ def moneytransfer():
                 cursor.execute('DELETE from Messages')
                 conn.commit()
 
-            print(result)
             if(result == "Correct"):
                 PASSWORD.clear()
                 message = "Successful"
