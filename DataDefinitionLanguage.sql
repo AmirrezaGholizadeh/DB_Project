@@ -26,6 +26,8 @@ destination_AccountNumber VARCHAR(16),
 amount DECIMAL(15,2),
 date DATE,
 time TIME,
+source_amount DECIMAL(15,2),
+destination_amount DECIMAL(15,2),
 PRIMARY KEY(source_AccountNumber, destination_AccountNumber, date, time)
 )
 

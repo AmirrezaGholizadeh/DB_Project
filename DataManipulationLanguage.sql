@@ -159,13 +159,7 @@ BEGIN
         BEGIN TRY
             DECLARE @Current_Date DATE = CAST(GETDATE() AS DATE);
             DECLARE @Current_Time TIME = CAST(GETDATE() AS TIME);
-            INSERT INTO Transactions
-            VALUES(@P_Source_AccountNumber,
-                @P_Destination_AccountNumber,
-                @P_Amount,
-                @Current_Date,
-                @Current_Time
-                )
+         
             UPDATE Accounts
             set amount = amount - @P_Amount 
             WHERE @P_Source_AccountNumber = account_number
@@ -173,6 +167,22 @@ BEGIN
             UPDATE Accounts
             set amount = amount + @P_Amount 
             WHERE @P_Destination_AccountNumber = account_number
+
+            DECLARE @Updated_Amount_Source DECIMAL(15,2)
+            DECLARE @Updated_Amount_Destination DECIMAL(15,2)
+
+            SELECT @Updated_Amount_Source = amount FROM Accounts WHERE @P_Source_AccountNumber = account_number
+            SELECT @Updated_Amount_Destination = amount FROM Accounts WHERE @P_Destination_AccountNumber = account_number
+
+            INSERT INTO Transactions
+            VALUES(@P_Source_AccountNumber,
+                @P_Destination_AccountNumber,
+                @P_Amount,
+                @Current_Date,
+                @Current_Time,
+                @Updated_Amount_Source,
+                @Updated_Amount_Destination
+                )
 
             INSERT INTO Messages 
             VALUES('Correct')
@@ -191,7 +201,9 @@ BEGIN
     END;
 END;
 
-DROP PROCEDURE TransactionProcedure
+
+
+
 
 CREATE FUNCTION Transactions_byNumber(
 @P_Account_Number VARCHAR(25),
@@ -215,6 +227,7 @@ RETURN (SELECT *
 FROM Transactions 
 WHERE date BETWEEN @P_StartDate AND @P_EndDate AND 
 (@P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber));
+
 
 
 CREATE PROCEDURE Block(
