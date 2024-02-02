@@ -210,6 +210,56 @@ WHERE date BETWEEN @P_StartDate AND @P_EndDate AND
 @P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber);
 
 
+CREATE PROCEDURE Block(
+@P_Account_Number VARCHAR(25)
+)
+AS 
+BEGIN
+    DECLARE @Current_Block BIT
+    SELECT @Current_Block = block FROM Accounts WHERE @P_Account_Number = account_number
+    IF @Current_Block = 0
+    BEGIN
+        UPDATE Accounts
+        set block = 1
+        WHERE @P_Account_Number = account_number
+        INSERT INTO Messages 
+        VALUES('Correct!')
+    END;
+    ELSE
+    BEGIN
+        INSERT INTO Messages 
+        VALUES('Wrong!')
+    END;
+END;
+
+
+
+CREATE PROCEDURE UNblock(
+@P_Account_Number VARCHAR(25)
+)
+AS 
+BEGIN
+    DECLARE @Current_Block BIT
+    SELECT @Current_Block = block FROM Accounts WHERE @P_Account_Number = account_number
+    IF @Current_Block = 1
+    BEGIN
+        UPDATE Accounts
+        set block = 0
+        WHERE @P_Account_Number = account_number
+        INSERT INTO Messages 
+        VALUES('Correct!')
+    END;
+    ELSE
+    BEGIN
+        INSERT INTO Messages 
+        VALUES('Wrong!')
+    END;
+END;
+
+
+
+
+
 
 -- EXECUTE TransactionProcedure @P_Source_AccountNumber = '5859831103511167',
 -- @P_Destination_AccountNumber = '5810121345678092', @P_Amount = 10000
