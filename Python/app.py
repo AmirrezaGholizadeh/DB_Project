@@ -71,20 +71,6 @@ def signup():
 
 @app.route('/', methods = ['GET', 'POST'])
 def main():
-    try:
-        if request.method == 'POST':
-            username = request.form.get('username')
-            name = request.form.get('name')
-            lastname = request.form.get('lastname')
-            email = request.form.get('email')
-            phone = request.form.get('phone')
-            password = request.form.get('password')
-
-            cursor.execute(f"EXECUTE Register @P_Username = {username}, @P_Password = {password}, @P_Name = {name}, @P_Lastname = {lastname}, @P_Email = {email}, @P_Phone_Number = {phone}")
-            conn.commit()
-            return redirect('/')
-    except Exception as e:
-        return render_template('main.html')
     
     return render_template('main.html')
 
@@ -197,6 +183,40 @@ def generatepass():
         PASSWORD.append(random_number)
         passwordMessage = random_number
         return render_template('moneytransfer.html', passwordMessage = passwordMessage)
+
+@app.route('/loans', methods = ['GET', 'POST'])
+def loans():
+    return render_template('loans.html')
+
+@app.route('/getloan', methods = ['GET', 'POST'])
+def getloan():
+    if request.method == 'POST':
+        number = request.form.get('account')
+
+
+        cursor.execute(f"EXECUTE Get_New_Loan @P_Account_Number = {number}, @P_Username = {USERNAME[0]}")
+        conn.commit()
+        cursor.execute('select * from Messages')
+
+        for row in cursor.fetchall():
+            print(row[0])
+            result = row[0]
+
+        cursor.execute('DELETE from Messages')
+        conn.commit()
+
+        if(result == 'Successfully'):
+            message = "Successful"
+            return render_template('getloan.html', message = message)
+        elif (result == 'You must finish your payments or your account is block'):
+            message = "You must finish your payments or your account is block"
+            return render_template('login.html', message = message)
+        else:
+            message = "Unsuccessful"
+            return render_template('login.html', message = message)
+            
+    
+    return render_template("getloan.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -325,6 +325,7 @@ END;
 
 CREATE PROCEDURE Get_New_Loan(
 @P_Account_Number VARCHAR(16)
+@P_Username
 )
 AS
 BEGIN
@@ -351,8 +352,8 @@ BEGIN
                     UPDATE Accounts
                     set loan_status = 1, amount = @P_amount + amount
                     where @P_Account_Number = account_number;
-                    INSERT INTO Loans(account_number, amount, remain_payment, date)
-                    VALUES (@P_Account_Number, @P_amount, 12, GETDATE());
+                    INSERT INTO Loans(username, account_number, amount, remain_payment, date)
+                    VALUES (@P_Username, @P_Account_Number, @P_amount, 12, GETDATE());
                     DECLARE @payment_times INTEGER;
                     set @payment_times = 1;
                     while @payment_times < 13
