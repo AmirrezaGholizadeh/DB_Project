@@ -18,7 +18,7 @@
         </form>
     </div>
     <div>
-        <form action="/getloan" method="post">
+        <form action="/loanscore" method="post">
             <h2>Loan Score</h2>
 
             <label for="loanscore_account">Account Number:</label>
@@ -37,6 +37,20 @@
             alert('Unsuccessful!');
         } else if (message === "Successful"){
             alert('Successful')
+            // Do nothing or perform other actions
+        }
+    </script>
+
+    <script>
+        // Assuming 'message' is a variable passed from Flask
+        let loanscore = "{{ loanscore }}";
+
+        // Check if the message is equal to "Unsuccessful"
+        if (loanscore > 0) {
+            // Show a pop-up alert
+            alert("The Loan Score is: " + loanscore);
+        } else if (loanscore ==="You didn't have any transcation" || loanscore === "Unsuccessful"){
+            alert(loanscore);
             // Do nothing or perform other actions
         }
     </script>

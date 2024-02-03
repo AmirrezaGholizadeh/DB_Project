@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px; /* Add top margin */
+        }
+
+        th, td {
+            border: 1px solid #ddd; /* Add border to cells */
+            padding: 8px; /* Add padding to cells */
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2; /* Add background color to header cells */
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9; /* Add background color to even rows */
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h2>Payment information</h2>
+        <form action="/paymentinformation" method="post">
+            <lable for="account">Account Number</lable>
+            <input type="number" id="account" name="account">
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <div>
+        <h2>Pay your installment</h2>
+        <form action="/payinstallment" method="post">
+            <lable for="account">Account Number</lable>
+            <input type="number" id="account" name="account">
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <div>
+        {% if data_from_db %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Account Number</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Paid Status</th>
+                    <!-- Add more columns as needed -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data_from_db %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>{{ row[2] }}</td>
+                        <td>{{ row[3] }}</td>
+                        <!-- Add more columns as needed -->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No data available from the database.</p>
+        {% endif %}
+    </div>
+    <script>
+        // Assuming 'message' is a variable passed from Flask
+        let message = "{{ message }}";
+
+        // Check if the message is equal to "Unsuccessful"
+        if (message === "Unsuccessful") {
+            // Show a pop-up alert
+            alert('Unsuccessful!');
+        } else if (message === "Successful"){
+            alert('Successful')
+            // Do nothing or perform other actions
+        }else if (message === 'Dont have enough money!'){
+            alert('Dont have enough money!')
+        }
+    </script>
+</body>
+</html>

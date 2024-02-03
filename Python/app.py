@@ -210,13 +210,91 @@ def getloan():
             return render_template('getloan.html', message = message)
         elif (result == 'You must finish your payments or your account is block'):
             message = "You must finish your payments or your account is block"
-            return render_template('login.html', message = message)
+            return render_template('getloan.html', message = message)
         else:
             message = "Unsuccessful"
-            return render_template('login.html', message = message)
+            return render_template('getloan.html', message = message)
             
     
     return render_template("getloan.html")
+
+@app.route('/loanscore', methods = ['GET', 'POST'])
+def loanscore():
+    if request.method == 'POST':
+        number = request.form.get('loanscore_account')
+
+
+        cursor.execute(f"SELECT dbo.Get_LoanScore({number})")
+
+        for row in cursor.fetchall():
+            print(row[0])
+            result = row[0]
+
+
+        if(result > 0):
+            loanscore = result
+            return render_template('getloan.html', loanscore = loanscore)
+        elif (result == -1):
+            loanscore = "You didn't have any transcation"
+            return render_template('getloan.html', loanscore = loanscore)
+        else:
+            message = "Unsuccessful"
+            return render_template('getloan.html', loanscore = loanscore)
+            
+    
+    return render_template("getloan.html")
+
+@app.route('/loaninformationuserid', methods = ['GET', 'POST'])
+def loaninformationUserID():
+    if request.method == 'POST':
+        userID = request.form.get('userID')
+
+        cursor.execute(f"SELECT * FROM Loan_List_byUsername(?)", userID)
+        data_from_db = cursor.fetchall()
+        return render_template("loaninformationUserID.html", data_from_db = data_from_db)
+    
+    return render_template("loaninformationUserID.html")
+
+@app.route('/paymentinformation', methods = ['GET', 'POST'])
+def paymentinformation():
+    if request.method == 'POST':
+        number = request.form.get('account')
+
+
+        cursor.execute(f"SELECT * FROM Info_Payment_byNumber({number})")
+        data_from_db = cursor.fetchall()
+        return render_template("paymentinfo.html", data_from_db = data_from_db)
+    
+    return render_template("paymentinfo.html")
+
+@app.route('/payinstallment', methods = ['GET', 'POST'])
+def payinstallment():
+    if request.method == 'POST':
+        number = request.form.get('account')
+
+        cursor.execute(f"EXECUTE Pay_Loan @P_Account_Number = {number}")
+        conn.commit()
+        cursor.execute('select * from Messages')
+
+        for row in cursor.fetchall():
+            print(row[0])
+            result = row[0]
+
+        cursor.execute('DELETE from Messages')
+        conn.commit()
+
+        if(result == 'Successfully Paid'):
+            message = "Successful"
+            return render_template('paymentinfo.html', message = message)
+        elif (result == 'Dont have enough money!'):
+            message = 'Dont have enough money!'
+            return render_template('paymentinfo.html', message = message)
+        else:
+            message = "Unsuccessful"
+            return render_template('paymentinfo.html', message = message)
+            
+    
+    return render_template("loaninformationNumber.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
