@@ -283,49 +283,48 @@ RETURNS TABLE
 AS
 RETURN (select * from Payments where @P_Account_Number = account_number);
 
-CREATE PROCEDURE Pay_Loan(
-    @P_Account_Number VARCHAR(16)
+
+CREATE FUNCTION Loan_List_byUsername(
+@P_username VARCHAR(25)
 )
+RETURNS TABLE
+AS
+RETURN (select * from Loans where @P_username = username);
+
+
+CREATE FUNCTION Get_LoanScore(
+    @P_Account_Number VARCHAR(16)
+)RETURNS INTEGER
 AS
 BEGIN
-    IF EXISTS (select * 
-                from Accounts 
-                where @P_Account_Number = Accounts.account_number and Accounts.loan_status = 1)
-        BEGIN
-            DECLARE @P_Payment_Amount DECIMAL(15, 2)
-            DECLARE @P_Account_Amount DECIMAL(15, 2)
-            select @P_Payment_Amount = amount / 12 from Loans where @P_Account_Number = amount;
-            select @P_Account_Amount = amount from Accounts where @P_Account_Number = amount;
-            IF @P_Payment_Amount <= @P_Account_Amount
-                BEGIN
-                    UPDATE Loans
-                    set remain_payment = remain_payment - 1
-                    where Loans.account_number = @P_Account_Number;
-                    UPDATE Payments
-                    set is_paid = 1
-                    where account_number = @P_Account_Number and date <= GETDATE();
-                    
-                    INSERT INTO Messages
-                    VALUES('Successfully Paid')
-                END;
-            ELSE
-                BEGIN
-                    INSERT INTO Messages
-                    VALUES('Dont have enough money!')
-                END;
-        END;
-        ELSE
-            BEGIN
-                INSERT INTO Messages
-                VALUES('You dont have loans')
-            END;
+    DECLARE @tmp1 INTEGER;
+    DECLARE @tmp2 INTEGER;
+    select @tmp1 = MIN(source_amount) 
+    from Transactions 
+    WHERE source_AccountNumber = @P_account_number AND
+    Transactions.date BETWEEN DATEADD(MONTH, -2, GETDATE()) AND GETDATE();
+    select @tmp2 = MIN(destination_amount)
+    from Transactions 
+    WHERE destination_AccountNumber = @P_account_number AND
+    date BETWEEN DATEADD(MONTH, -2, GETDATE()) AND GETDATE();
+    IF @tmp2 IS NOT NULL AND @tmp1 IS NULL
+    BEGIN
+        RETURN @tmp2
+    END
+    IF @tmp1 IS NOT NULL AND @tmp2 IS NULL
+    BEGIN
+        RETURN @tmp1
+    END
+    IF @tmp1 IS NULL AND @tmp2 IS NULL
+    BEGIN
+       RETURN -1
+    END
+    
+    RETURN CASE WHEN @tmp1 > @tmp2 THEN @tmp2 ELSE @tmp1 END;
 END;
 
-
 CREATE PROCEDURE Get_New_Loan(
-    @P_Username VARCHAR(25),
-    @P_Account_Number VARCHAR(16),
-    @P_Amount DECIMAL(15, 2)
+@P_Account_Number VARCHAR(16)
 )
 AS
 BEGIN
@@ -338,40 +337,88 @@ BEGIN
         BEGIN
             IF EXISTS (select * 
                 from Accounts 
-                where @P_Account_Number = account_number and loan_status = 1)
+                where @P_Account_Number = account_number and (loan_status = 1 or block =1))
                 BEGIN
                     INSERT INTO Messages
-                    VALUES('You must finish your payments')
+                    VALUES('You must finish your payments or your account is block')
                 END;
             ELSE
                 BEGIN
+                    DECLARE @P_amount INTEGER;
+                    SET @P_amount = dbo.Get_LoanScore(@P_Account_Number)
+                    SET @P_amount = @P_amount + ((@P_amount*20)/100)
                     -- Add new loan
                     UPDATE Accounts
-                    set loan_status = 1, amount = @P_Amount + amount
+                    set loan_status = 1, amount = @P_amount + amount
                     where @P_Account_Number = account_number;
-                    INSERT INTO Loans(username, account_number, amount, remain_payment, date)
-                    VALUES (@P_Username, @P_Account_Number, @P_Amount, 12, GETDATE());
-                    DECLARE @payment_times INTEGER
-                    set @payment_times = 1
+                    INSERT INTO Loans(account_number, amount, remain_payment, date)
+                    VALUES (@P_Account_Number, @P_amount, 12, GETDATE());
+                    DECLARE @payment_times INTEGER;
+                    set @payment_times = 1;
                     while @payment_times < 13
                         BEGIN
                             INSERT INTO Payments
-                            VALUES (@P_Account_Number, @P_Amount, GETDATE() + 30 * @Payment_times, 0);
+                            VALUES (@P_Account_Number, @P_amount/12, DATEADD(MONTH, @payment_times, GETDATE()), 0);
                             set @payment_times = @payment_times + 1
                         END
                     INSERT INTO Messages
                     VALUES('Successfully')
-                END;
-        END;
+                END
+        END
 END;
 
-CREATE FUNCTION Loan_List_byUsername(
-@P_username VARCHAR(25)
+CREATE PROCEDURE Pay_Loan(
+    @P_Account_Number VARCHAR(16)
 )
-RETURNS TABLE
 AS
-RETURN (select * from Loans where @P_username = username);
+BEGIN
+    IF EXISTS (select * 
+                from Accounts 
+                where @P_Account_Number = account_number and loan_status = 1) AND EXISTS (SELECT * FROM Payments
+                WHERE @P_Account_Number = account_number AND is_paid = 0)
+        BEGIN
+            DECLARE @P_Payment_Amount DECIMAL(15, 2)
+            DECLARE @P_Account_Amount DECIMAL(15, 2)
+            select @P_Payment_Amount = amount / 12 from Loans where @P_Account_Number = account_number;
+            select @P_Account_Amount = amount from Accounts where @P_Account_Number = account_number;
+            IF @P_Payment_Amount <= @P_Account_Amount
+                BEGIN
+                    UPDATE Loans
+                    set remain_payment = remain_payment - 1
+                    where Loans.account_number = @P_Account_Number;
 
+                    
+
+                    UPDATE TOP (1) Payments 
+                    set is_paid = 1
+                    WHERE @P_Account_Number = account_number AND is_paid = 0
+
+                    UPDATE Accounts
+                    set amount = amount - @P_Payment_Amount
+                    WHERE @P_Account_Number = account_number 
+
+                    -- UPDATE Payments
+                    -- set is_paid = 1
+                    -- where account_number = @P_Account_Number and date <= GETDATE();
+                    
+                    INSERT INTO Messages
+                    VALUES('Successfully Paid')
+                END;
+            ELSE
+                BEGIN
+                    INSERT INTO Messages
+                    VALUES('Dont have enough money!')
+                END;
+        END;
+        ELSE
+            BEGIN
+                UPDATE Accounts
+                set loan_status = 0
+                WHERE @P_Account_Number = account_number
+                INSERT INTO Messages
+                VALUES('You dont have loans')
+            END;
+END;
 
 
 

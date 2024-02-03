@@ -49,6 +49,6 @@ CREATE TABLE Payments (
     amount DECIMAL(15, 2),
     date DATE,
     is_paid BIT,
-    PRIMARY KEY (account_number),
+    PRIMARY KEY (account_number, date),
     FOREIGN KEY (account_number) REFERENCES Loans(account_number)
 );
