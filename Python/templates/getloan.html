@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/getloan_style.css')}}">
     <title>Sign Up</title>
 </head>
 <body>
-    <div>
+    <div id="container1">
         <form action="/getloan" method="post">
-            <h2>Get Lona</h2>
+            <h2>Get Loan</h2>
 
             <label for="account">Account Number:</label>
             <input type="number" id="account" name="account" required>
@@ -17,7 +18,7 @@
             <button type="submit">Get Loan</button>
         </form>
     </div>
-    <div>
+    <div id="container2">
         <form action="/loanscore" method="post">
             <h2>Loan Score</h2>
 
@@ -38,8 +39,6 @@
         } else if (message === "Successful"){
             alert('Successful')
             // Do nothing or perform other actions
-        } else if (message === 'You must finish your payments or your account is block'){
-            alert('You must finish your payments or your account is block')
         }
     </script>
 
@@ -51,7 +50,7 @@
         if (loanscore > 0) {
             // Show a pop-up alert
             alert("The Loan Score is: " + loanscore);
-        } else if (loanscore ==="You didn't have any transcation" || loanscore === "Unsuccessful"){
+        } else if (loanscore === "Unsuccessful"){
             alert(loanscore);
             // Do nothing or perform other actions
         }

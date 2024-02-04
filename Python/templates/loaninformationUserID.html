@@ -3,31 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 20px; /* Add top margin */
-        }
-
-        th, td {
-            border: 1px solid #ddd; /* Add border to cells */
-            padding: 8px; /* Add padding to cells */
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2; /* Add background color to header cells */
-        }
-
-        tr:nth-child(even) {
-            background-color: #f9f9f9; /* Add background color to even rows */
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/loaninformationUserID_style.css')}}">
+    <title>loan information by User Id</title>
 </head>
 <body>
-    <h2>Your Loans</h2>
+    <div id="container">
+    <hr>
     <div>
         {% if data_from_db %}
         <table>
@@ -57,6 +38,7 @@
         {% else %}
         <p>No data available from the database.</p>
         {% endif %}
+    </div>
     </div>
 </body>
 </html>

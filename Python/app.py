@@ -15,6 +15,7 @@ USERNAME = []
 PASSWORD = []
 
 
+
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
     try:
@@ -281,11 +282,8 @@ def loanscore():
         if(result > 0):
             loanscore = result
             return render_template('getloan.html', loanscore = loanscore)
-        elif (result == -1):
-            loanscore = "You didn't have any transcation"
-            return render_template('getloan.html', loanscore = loanscore)
         else:
-            message = "Unsuccessful"
+            loanscore = "Unsuccessful"
             return render_template('getloan.html', loanscore = loanscore)
             
     
@@ -346,6 +344,8 @@ def blockaccount():
     if request.method == 'POST':
         number = request.form.get('account')
 
+        UNBLOK_ACCOUNTNUMBER.append(number)
+
         cursor.execute(f"EXECUTE Block @P_Account_Number = {number}, @P_Username = {USERNAME[0]}")
         conn.commit()
         cursor.execute('select * from Messages')
@@ -369,8 +369,8 @@ def blockaccount():
 @app.route('/unblockaccount', methods = ['GET', 'POST'])
 def Unblockaccount():
     if request.method == 'POST':
-        number = request.form.get('account')
-
+        number = request.form.get('accountToUnblock')
+        print(number)
         cursor.execute(f"EXECUTE UNblock @P_Account_Number = {number}, @P_Username = {USERNAME[0]}")
         conn.commit()
         cursor.execute('select * from Messages')

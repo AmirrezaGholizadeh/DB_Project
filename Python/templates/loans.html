@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/loans_style.css')}}">
     <title>Bank</title>
 </head>
 <body>
-    <a href="/getloan">Get Loan</a> 
-    <a href="/loaninformationuserid">Your Loans information</a> 
-    <a href="/paymentinformation">Payments information/Pay installment</a>  
+    <div id="container">
+        <a href="/getloan">Get Loan</a> 
+        <a href="/loaninformationuserid">Your Loans information</a> 
+        <a href="/paymentinformation">Payments information/Pay installment</a>  
+    </div>
 </body>
 </html>

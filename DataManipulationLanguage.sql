@@ -160,7 +160,9 @@ CREATE PROCEDURE Get_New_Loan(
 )
 AS
 BEGIN
-    IF NOT EXISTS(select * from Accounts where @P_Account_Number = account_number  AND @P_Username = username)
+    DECLARE @tmp INTEGER;
+    @tmp = dbo.Get_LoanScore(@P_Account_Number, @P_Username)
+    IF NOT EXISTS(select * from Accounts where @P_Account_Number = account_number  AND @P_Username = username) AND @tmp < 1
         BEGIN
             INSERT INTO Messages
             VALUES('The username doesnt exist or you can not get loan on this account')
@@ -177,7 +179,7 @@ BEGIN
             ELSE
                 BEGIN
                     DECLARE @P_amount INTEGER;
-                    SET @P_amount = dbo.Get_LoanScore(@P_Account_Number)
+                    SET @P_amount = dbo.Get_LoanScore(@P_Account_Number, @P_Username)
                     SET @P_amount = @P_amount + ((@P_amount*20)/100)
                     -- Add new loan
                     UPDATE Accounts
@@ -198,24 +200,6 @@ BEGIN
                 END
         END
 END;
-
-
-
-
--- EXECUTE TransactionProcedure @P_Source_AccountNumber = '5859831103511167',
--- @P_Destination_AccountNumber = '5810121345678092', @P_Amount = 10000
-
--- SELECT TOP 2 * FROM Transactions ORDER BY date DESC, time  DESC 
-
--- -- EXECUTE New_Account @P_Account_Number = '5810121345678090',@P_Username = 'Mohsen', 
--- -- @P_Amount = '556000000', @P_Block = 1 , @P_Loan_Status = 1
-
--- -- -- EXECUTE Change_Password @P_Username = 'Amiir', @P_Current_Password = '456', @P_New_Password = '789'
-
--- SELECT * FROM Transactions_byDate('5859831103511167', '2024-01-30', '2024-01-30')
--- SELECT * FROM Accounts
--- SELECT * FROM Users
--- PRINT dbo.   
 
 CREATE FUNCTION Accounts_Info_byNumber(
 @P_Account_Nummber VARCHAR(16),

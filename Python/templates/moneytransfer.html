@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/moneytransfer_style (2).css')}}">
     <title>Document</title>
 </head>
 <body>
-    <div class="login-container">
+    <div id="login-container">
         <h2>Transfer Money</h2>
         <form action="/moneytransfer" method="post">
             <div class="form-group">
@@ -31,7 +32,7 @@
             <button type="submit">Generate Password</button>
         </form>
     </div>
-    <div>
+    <div id="owner-container">
         <h2>Account Owner</h2>
         <form action="/accountowner" method="post">
             <div class="form-group">
@@ -82,3 +83,4 @@
     </script>
 </body>
 </html>
+    

@@ -3,6 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/blockaccount_style.css')}}">
+    <title>Block/Unblock Account</title>
+</head>
+<body>
+    <div id="container">
+        <div>
+            <form action="/blockaccount" method="post" id="blockForm">
+                <label for="account">Account Number</label>
+                <hr>
+                <input type="number" id="account" name="account">
+                <button type="submit">Block</button>
+            </form>
+            <form action="/unblockaccount" method="post" id="unblockForm">
+                <!-- Hidden input field with a default value -->
+                <input type="hidden" name="accountToUnblock" id="accountToUnblock" value="">
+
+                <button type="submit">Unblock</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Assuming 'message' is a variable passed from Flask
+        let message = "{{ message }}";
+
+        // Check if the message is equal to "Unsuccessful"
+        if (message === "Unsuccessful") {
+            // Show a pop-up alert
+            alert('Unsuccessful!');
+        } else if (message === "Successfully blocked"){
+            alert("Successfully blocked")
+            // Do nothing or perform other actions
+        }
+
+        // Set the value of the hidden input before submitting the Unblock form
+        document.getElementById('unblockForm').addEventListener('submit', function(event) {
+            // Get the value from the 'account' input
+            let accountValue = document.getElementById('account').value;
+            // Set the value of the hidden input in the Unblock form
+            document.getElementById('accountToUnblock').value = accountValue;
+        });
+    </script>
+
+    <script>
+        // Assuming 'unblockMessage' is a variable passed from Flask
+        let unblockMessage = "{{ unblockMessage }}";
+
+        // Check if the message is equal to "Unsuccessful"
+        if (unblockMessage === "Unsuccessful") {
+            // Show a pop-up alert
+            alert('Unsuccessful!');
+        } else if (unblockMessage === "Successfully unblocked"){
+            alert("Successfully unblocked")
+            // Do nothing or perform other actions
+        }
+    </script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
 <body>
@@ -49,4 +113,4 @@
     }
 </script>
 </body>
-</html>
+</html> -->

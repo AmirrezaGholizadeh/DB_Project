@@ -3,6 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main_style.css')}}">
+    <title>Bank</title>
+</head>
+<body>
+    <div id="container"> 
+        <a href="/newaccount">Create new account</a> 
+        <a href="/accountinformationuserid">Your accounts information</a> 
+        <a href="/accountinformationnumber">Account information by Account Number</a> 
+        <a href="/moneytransfer">Transfer money</a> 
+        <a href="/transactionsdate">Your transactions specify by date</a> 
+        <a href="/transactionsnumber">Your transactions specify by number</a> 
+        <a href="/blockaccount">Block account/Unblock account</a>  
+        <a href="/loans">Loans</a> 
+        <a href="/changepassword">Change Password</a> 
+    </div>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bank</title>
 </head>
 <body>
@@ -16,4 +40,4 @@
     <a href="/loans">Loans</a> 
     <a href="/changepassword">Change Password</a> 
 </body>
-</html>
+</html> -->
