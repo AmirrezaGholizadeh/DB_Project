@@ -34,6 +34,7 @@ def login():
             conn.commit()
 
             if(result == 'Correct'):
+                USERNAME.clear()
                 USERNAME.append(username)
                 return redirect('/')
             else:
@@ -74,14 +75,39 @@ def main():
     
     return render_template('main.html')
 
+@app.route('/changepassword', methods = ['GET', 'POST'])
+def changePassword():
+    if request.method == 'POST':
+        currentPassword = request.form.get('current_password')
+        newPassword = request.form.get('new_password')
+      
+        cursor.execute(f"EXECUTE Change_Password @P_Username = {USERNAME[0]}, @P_Current_Password = {currentPassword}, @P_New_Password = {newPassword}")
+        conn.commit()
+      
+        cursor.execute('select * from Messages')
+
+        for row in cursor.fetchall():
+            print(row[0])
+            result = row[0]
+
+        cursor.execute('DELETE from Messages')
+        conn.commit()
+
+        if(result == 'Correct'):
+            message = "Successful"
+            return render_template('changepass.html', message = message)
+        else:
+            message = "Unsuccessful"
+            return render_template('changepass.html', message = message)
+     
+
+    return render_template('changepass.html')
+
 @app.route('/newaccount', methods = ['GET', 'POST'])
 def newaccount():
-    global USERNAME
     if request.method == 'POST':
-        print("SADSADASDasd")
+    
         number = request.form.get('account')
-        print(USERNAME[0])
-        print("SADSADASDasd")
         cursor.execute(f"EXECUTE New_Account @P_Account_Number = {str(number)}, @P_Username = {USERNAME[0]}, @P_Amount = {0}, @P_Block = {0}, @P_Loan_Status = {0}")
         conn.commit()
         return redirect('/')
@@ -96,7 +122,7 @@ def transactionsDate():
         endDate = request.form.get('end')
         accountNumber = request.form.get('account')
 
-        cursor.execute("SELECT * FROM Transactions_byDate(?, ?, ?)", accountNumber, startDate, endDate)
+        cursor.execute("SELECT * FROM Transactions_byDate(?, ?, ?, ?)", accountNumber, startDate, endDate, USERNAME[0])
     
         data_from_db = cursor.fetchall()
         return render_template("transactionsDate.html", data_from_db = data_from_db)
@@ -111,7 +137,7 @@ def transactionsNumber():
 
       
        
-        cursor.execute("SELECT * FROM Transactions_byNumber(?, ?)", accountNumber, number)
+        cursor.execute("SELECT * FROM Transactions_byNumber(?, ?, ?)", accountNumber, number, USERNAME[0])
         data_from_db = cursor.fetchall()
         return render_template("transactionsNumber.html", data_from_db = data_from_db)
     
@@ -119,14 +145,11 @@ def transactionsNumber():
 
 @app.route('/accountinformationuserid', methods = ['GET', 'POST'])
 def accountinformationUserID():
-    if request.method == 'POST':
-        userID = request.form.get('userID')
 
-        cursor.execute(f"SELECT * FROM Accounts_Info_byID(?)", userID)
-        data_from_db = cursor.fetchall()
-        return render_template("accountinformationUserID.html", data_from_db = data_from_db)
+    cursor.execute(f"SELECT * FROM Accounts_Info_byID(?)", USERNAME[0])
+    data_from_db = cursor.fetchall()
+    return render_template("accountinformationUserID.html", data_from_db = data_from_db)
     
-    return render_template("accountinformationUserID.html")
 
 @app.route('/accountinformationnumber', methods = ['GET', 'POST'])
 def accountinformationNumber():
@@ -134,7 +157,7 @@ def accountinformationNumber():
         number = request.form.get('account')
 
 
-        cursor.execute(f"SELECT * FROM Accounts_Info_byNumber({number})")
+        cursor.execute(f"SELECT * FROM Accounts_Info_byNumber(?, ?)",number, USERNAME[0])
         data_from_db = cursor.fetchall()
         return render_template("accountinformationNumber.html", data_from_db = data_from_db)
     
@@ -151,7 +174,7 @@ def moneytransfer():
         
             result = ""
             if(str(password) == str(PASSWORD[-1])):
-                cursor.execute(f"EXECUTE TransactionProcedure @P_Source_AccountNumber = {source}, @P_Destination_AccountNumber = {destination}, @P_Amount = {amount}")
+                cursor.execute(f"EXECUTE TransactionProcedure @P_Source_AccountNumber = {source}, @P_Destination_AccountNumber = {destination}, @P_Amount = {amount}, @P_Username = {USERNAME[0]}")
                 conn.commit()
                 cursor.execute('select * from Messages')
 
@@ -190,30 +213,34 @@ def loans():
 
 @app.route('/getloan', methods = ['GET', 'POST'])
 def getloan():
-    if request.method == 'POST':
-        number = request.form.get('account')
+    try:
+        if request.method == 'POST':
+            number = request.form.get('account')
 
 
-        cursor.execute(f"EXECUTE Get_New_Loan @P_Account_Number = {number}, @P_Username = {USERNAME[0]}")
-        conn.commit()
-        cursor.execute('select * from Messages')
+            cursor.execute(f"EXECUTE Get_New_Loan @P_Account_Number = {number}, @P_Username = {USERNAME[0]}")
+            conn.commit()
+            cursor.execute('select * from Messages')
 
-        for row in cursor.fetchall():
-            print(row[0])
-            result = row[0]
+            for row in cursor.fetchall():
+                print(row[0])
+                result = row[0]
 
-        cursor.execute('DELETE from Messages')
-        conn.commit()
+            cursor.execute('DELETE from Messages')
+            conn.commit()
 
-        if(result == 'Successfully'):
-            message = "Successful"
-            return render_template('getloan.html', message = message)
-        elif (result == 'You must finish your payments or your account is block'):
-            message = "You must finish your payments or your account is block"
-            return render_template('getloan.html', message = message)
-        else:
-            message = "Unsuccessful"
-            return render_template('getloan.html', message = message)
+            if(result == 'Successfully'):
+                message = "Successful"
+                return render_template('getloan.html', message = message)
+            elif (result == 'You must finish your payments or your account is block'):
+                message = "You must finish your payments or your account is block"
+                return render_template('getloan.html', message = message)
+            else:
+                message = "Unsuccessful"
+                return render_template('getloan.html', message = message)
+    except Exception as e:
+        message = "Unsuccessful"
+        return render_template('getloan.html',  message = message)
             
     
     return render_template("getloan.html")
@@ -224,7 +251,7 @@ def loanscore():
         number = request.form.get('loanscore_account')
 
 
-        cursor.execute(f"SELECT dbo.Get_LoanScore({number})")
+        cursor.execute(f"SELECT dbo.Get_LoanScore(?, ?)", number, USERNAME[0])
 
         for row in cursor.fetchall():
             print(row[0])
@@ -246,14 +273,12 @@ def loanscore():
 
 @app.route('/loaninformationuserid', methods = ['GET', 'POST'])
 def loaninformationUserID():
-    if request.method == 'POST':
-        userID = request.form.get('userID')
 
-        cursor.execute(f"SELECT * FROM Loan_List_byUsername(?)", userID)
-        data_from_db = cursor.fetchall()
-        return render_template("loaninformationUserID.html", data_from_db = data_from_db)
+
+    cursor.execute(f"SELECT * FROM Loan_List_byUsername(?)", USERNAME[0])
+    data_from_db = cursor.fetchall()
+    return render_template("loaninformationUserID.html", data_from_db = data_from_db)
     
-    return render_template("loaninformationUserID.html")
 
 @app.route('/paymentinformation', methods = ['GET', 'POST'])
 def paymentinformation():
@@ -261,7 +286,7 @@ def paymentinformation():
         number = request.form.get('account')
 
 
-        cursor.execute(f"SELECT * FROM Info_Payment_byNumber({number})")
+        cursor.execute(f"SELECT * FROM Info_Payment_byNumber(?, ?)", number, USERNAME[0])
         data_from_db = cursor.fetchall()
         return render_template("paymentinfo.html", data_from_db = data_from_db)
     
@@ -272,7 +297,7 @@ def payinstallment():
     if request.method == 'POST':
         number = request.form.get('account')
 
-        cursor.execute(f"EXECUTE Pay_Loan @P_Account_Number = {number}")
+        cursor.execute(f"EXECUTE Pay_Loan @P_Account_Number = {number}, @P_Username = {USERNAME[0]}")
         conn.commit()
         cursor.execute('select * from Messages')
 
@@ -295,6 +320,56 @@ def payinstallment():
             
     
     return render_template("loaninformationNumber.html")
+
+@app.route('/blockaccount', methods = ['GET', 'POST'])
+def blockaccount():
+    if request.method == 'POST':
+        number = request.form.get('account')
+
+        cursor.execute(f"EXECUTE Block @P_Account_Number = {number}, @P_Username = {USERNAME[0]}")
+        conn.commit()
+        cursor.execute('select * from Messages')
+
+        for row in cursor.fetchall():
+            print(row[0])
+            result = row[0]
+
+        cursor.execute('DELETE from Messages')
+        conn.commit()
+
+        if(result == 'Correct!'):
+            message = "Successfully blocked"
+            return render_template('blockaccount.html', message = message)
+        elif (result == 'Wrong!'):
+            message = "Unsuccessful"
+            return render_template('blockaccount.html', message = message)
+    
+    return render_template("blockaccount.html")
+
+@app.route('/unblockaccount', methods = ['GET', 'POST'])
+def Unblockaccount():
+    if request.method == 'POST':
+        number = request.form.get('account')
+
+        cursor.execute(f"EXECUTE UNblock @P_Account_Number = {number}, @P_Username = {USERNAME[0]}")
+        conn.commit()
+        cursor.execute('select * from Messages')
+
+        for row in cursor.fetchall():
+            print(row[0])
+            result = row[0]
+
+        cursor.execute('DELETE from Messages')
+        conn.commit()
+
+        if(result == 'Correct!'):
+            unblockMessage = "Successfully unblocked"
+            return render_template('blockaccount.html', unblockMessage = unblockMessage)
+        elif (result == 'Wrong!'):
+            unblockMessage = "Unsuccessful"
+            return render_template('blockaccount.html', unblockMessage = unblockMessage)
+    
+    return render_template("blockaccount.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

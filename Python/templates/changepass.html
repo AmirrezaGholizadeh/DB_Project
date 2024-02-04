@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=\, initial-scale=1.0">
+    <title>Log in</title>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Change Password</h2>
+        <form action="/changepassword" method="post">
+            <div class="form-group">
+                <label for="current_password">Current Password:</label>
+                <input type="password" id="current_password" name="current_password" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">New Password:</label>
+                <input type="password" id="new_password" name="new_password" required>
+            </div>
+            <button type="submit">Change Password</button>
+        </form>
+    </div>
+
+    <script>
+        // Assuming 'message' is a variable passed from Flask
+        let message = "{{ message }}";
+
+        // Check if the message is equal to "Unsuccessful"
+        if (message === "Unsuccessful") {
+            // Show a pop-up alert
+            alert('Unsuccessful!');
+        } else if(message === "Successful") {
+            alert(message);
+            // Do nothing or perform other actions
+        }
+    </script>
+</body>
+</html>

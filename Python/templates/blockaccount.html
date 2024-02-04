@@ -13,5 +13,40 @@
             <button type="submit">Blcok</button>
         </form>
     </div>
+    <div>
+        <form action="/unblockaccount" method="post">
+            <lable for="account">Account Number</lable>
+            <input type="number" id="account" name="account">
+            <button type="submit">Unblcok</button>
+        </form>
+    </div>
+
+    <script>
+        // Assuming 'message' is a variable passed from Flask
+        let message = "{{ message }}";
+
+        // Check if the message is equal to "Unsuccessful"
+        if (message === "Unsuccessful") {
+            // Show a pop-up alert
+            alert('Unsuccessful!');
+        } else if (message === "Successfully blocked"){
+            alert("Successfully blocked")
+            // Do nothing or perform other actions
+        }
+    </script>
+
+<script>
+    // Assuming 'message' is a variable passed from Flask
+    let unblockMessage = "{{ unblockMessage }}";
+
+    // Check if the message is equal to "Unsuccessful"
+    if (unblockMessage === "Unsuccessful") {
+        // Show a pop-up alert
+        alert('Unsuccessful!');
+    } else if (unblockMessage === "Successfully unblocked"){
+        alert("Successfully unblocked")
+        // Do nothing or perform other actions
+    }
+</script>
 </body>
 </html>

@@ -27,13 +27,7 @@
     </style>
 </head>
 <body>
-    <div>
-        <form action="/loaninformationuserid" method="post">
-            <lable for="userID">User ID</lable>
-            <input type="text" id="userID" name="userID">
-            <button type="submit">Submit</button>
-        </form>
-    </div>
+    <h2>Your Loans</h2>
     <div>
         {% if data_from_db %}
         <table>
