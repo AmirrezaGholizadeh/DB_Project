@@ -126,12 +126,7 @@ RETURNS TABLE
 AS 
 RETURN (SELECT * FROM Accounts WHERE @P_Username = username);
 
--- CREATE FUNCTION Accounts_Info_byNumber(
--- @P_Account_Nummber VARCHAR(16)
--- )
--- RETURNS TABLE
--- AS 
--- RETURN (SELECT * FROM Accounts WHERE @P_Account_Nummber = account_number);
+
 
 CREATE FUNCTION Account_Owner(
 @P_Account_Nummber VARCHAR(16)
@@ -146,145 +141,7 @@ BEGIN
     RETURN (@fullName)
 END;
 
--- CREATE PROCEDURE TransactionProcedure(
--- @P_Source_AccountNumber VARCHAR(16),
--- @P_Destination_AccountNumber VARCHAR(16),
--- @P_Amount DECIMAL(15,2)
--- )
--- AS
--- BEGIN
---     DECLARE @Current_Amount DECIMAL(15,2)
---     DECLARE @Current_Block BIT
---     SELECT @Current_Amount = amount, @Current_Block = block FROM Accounts WHERE @P_Source_AccountNumber = account_number
---     IF @Current_Amount >= @P_Amount AND @Current_Block = 0
---         BEGIN
---         BEGIN TRANSACTION;
---         BEGIN TRY
---             DECLARE @Current_Date DATE = CAST(GETDATE() AS DATE);
---             DECLARE @Current_Time TIME = CAST(GETDATE() AS TIME);
-         
---             UPDATE Accounts
---             set amount = amount - @P_Amount 
---             WHERE @P_Source_AccountNumber = account_number
 
---             UPDATE Accounts
---             set amount = amount + @P_Amount 
---             WHERE @P_Destination_AccountNumber = account_number
-
---             DECLARE @Updated_Amount_Source DECIMAL(15,2)
---             DECLARE @Updated_Amount_Destination DECIMAL(15,2)
-
---             SELECT @Updated_Amount_Source = amount FROM Accounts WHERE @P_Source_AccountNumber = account_number
---             SELECT @Updated_Amount_Destination = amount FROM Accounts WHERE @P_Destination_AccountNumber = account_number
-
---             INSERT INTO Transactions
---             VALUES(@P_Source_AccountNumber,
---                 @P_Destination_AccountNumber,
---                 @P_Amount,
---                 @Current_Date,
---                 @Current_Time,
---                 @Updated_Amount_Source,
---                 @Updated_Amount_Destination
---                 )
-
---             INSERT INTO Messages 
---             VALUES('Correct')
-
---         COMMIT TRANSACTION;
---         END TRY
---         BEGIN CATCH
---             ROLLBACK TRANSACTION;
---             THROW;
---         END CATCH
---     END;
---     ELSE
---     BEGIN
---         INSERT INTO Messages 
---         VALUES('Wrong!')
---     END;
--- END;
-
-
-
-
-
--- CREATE FUNCTION Transactions_byNumber(
--- @P_Account_Number VARCHAR(25),
--- @P_Number INT
--- )
--- RETURNS TABLE
--- AS 
--- RETURN (SELECT TOP (@P_Number) * 
--- FROM Transactions 
--- WHERE @P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber
--- ORDER BY date DESC, time DESC);
-
--- CREATE FUNCTION Transactions_byDate(
--- @P_Account_Number VARCHAR(25),
--- @P_StartDate VARCHAR(60),
--- @P_EndDate VARCHAR(60)
--- )
--- RETURNS TABLE
--- AS
--- RETURN (SELECT * 
--- FROM Transactions 
--- WHERE date BETWEEN @P_StartDate AND @P_EndDate AND 
--- (@P_Account_Number = source_AccountNumber OR @P_Account_Number = destination_AccountNumber));
-
-
-
--- CREATE PROCEDURE Block(
--- @P_Account_Number VARCHAR(25)
--- )
--- AS 
--- BEGIN
---     DECLARE @Current_Block BIT
---     SELECT @Current_Block = block FROM Accounts WHERE @P_Account_Number = account_number
---     IF @Current_Block = 0
---     BEGIN
---         UPDATE Accounts
---         set block = 1
---         WHERE @P_Account_Number = account_number
---         INSERT INTO Messages 
---         VALUES('Correct!')
---     END;
---     ELSE
---     BEGIN
---         INSERT INTO Messages 
---         VALUES('Wrong!')
---     END;
--- END;
-
-
-
--- CREATE PROCEDURE UNblock(
--- @P_Account_Number VARCHAR(25)
--- )
--- AS 
--- BEGIN
---     DECLARE @Current_Block BIT
---     SELECT @Current_Block = block FROM Accounts WHERE @P_Account_Number = account_number
---     IF @Current_Block = 1
---     BEGIN
---         UPDATE Accounts
---         set block = 0
---         WHERE @P_Account_Number = account_number
---         INSERT INTO Messages 
---         VALUES('Correct!')
---     END;
---     ELSE
---     BEGIN
---         INSERT INTO Messages 
---         VALUES('Wrong!')
---     END;
--- END;
-
--- CREATE FUNCTION Info_Payment_byNumber(
---     @P_Account_Number VARCHAR(16)
--- )
--- RETURNS TABLE
--- AS
--- RETURN (select * from Payments where @P_Account_Number = account_number);
 
 
 CREATE FUNCTION Loan_List_byUsername(
@@ -295,36 +152,7 @@ AS
 RETURN (select * from Loans where @P_username = username);
 
 
--- CREATE FUNCTION Get_LoanScore(
---     @P_Account_Number VARCHAR(16)
--- )RETURNS INTEGER
--- AS
--- BEGIN
---     DECLARE @tmp1 INTEGER;
---     DECLARE @tmp2 INTEGER;
---     select @tmp1 = MIN(source_amount) 
---     from Transactions 
---     WHERE source_AccountNumber = @P_account_number AND
---     Transactions.date BETWEEN DATEADD(MONTH, -2, GETDATE()) AND GETDATE();
---     select @tmp2 = MIN(destination_amount)
---     from Transactions 
---     WHERE destination_AccountNumber = @P_account_number AND
---     date BETWEEN DATEADD(MONTH, -2, GETDATE()) AND GETDATE();
---     IF @tmp2 IS NOT NULL AND @tmp1 IS NULL
---     BEGIN
---         RETURN @tmp2
---     END
---     IF @tmp1 IS NOT NULL AND @tmp2 IS NULL
---     BEGIN
---         RETURN @tmp1
---     END
---     IF @tmp1 IS NULL AND @tmp2 IS NULL
---     BEGIN
---        RETURN -1
---     END
-    
---     RETURN CASE WHEN @tmp1 > @tmp2 THEN @tmp2 ELSE @tmp1 END;
--- END;
+
 
 CREATE PROCEDURE Get_New_Loan(
 @P_Account_Number VARCHAR(16),
@@ -370,59 +198,6 @@ BEGIN
                 END
         END
 END;
-
--- CREATE PROCEDURE Pay_Loan(
---     @P_Account_Number VARCHAR(16)
--- )
--- AS
--- BEGIN
---     IF EXISTS (select * 
---                 from Accounts 
---                 where @P_Account_Number = account_number and loan_status = 1) AND EXISTS (SELECT * FROM Payments
---                 WHERE @P_Account_Number = account_number AND is_paid = 0)
---         BEGIN
---             DECLARE @P_Payment_Amount DECIMAL(15, 2)
---             DECLARE @P_Account_Amount DECIMAL(15, 2)
---             select @P_Payment_Amount = amount / 12 from Loans where @P_Account_Number = account_number;
---             select @P_Account_Amount = amount from Accounts where @P_Account_Number = account_number;
---             IF @P_Payment_Amount <= @P_Account_Amount
---                 BEGIN
---                     UPDATE Loans
---                     set remain_payment = remain_payment - 1
---                     where Loans.account_number = @P_Account_Number;
-
-                    
-
---                     UPDATE TOP (1) Payments 
---                     set is_paid = 1
---                     WHERE @P_Account_Number = account_number AND is_paid = 0
-
---                     UPDATE Accounts
---                     set amount = amount - @P_Payment_Amount
---                     WHERE @P_Account_Number = account_number 
-
---                     -- UPDATE Payments
---                     -- set is_paid = 1
---                     -- where account_number = @P_Account_Number and date <= GETDATE();
-                    
---                     INSERT INTO Messages
---                     VALUES('Successfully Paid')
---                 END;
---             ELSE
---                 BEGIN
---                     INSERT INTO Messages
---                     VALUES('Dont have enough money!')
---                 END;
---         END;
---         ELSE
---             BEGIN
---                 UPDATE Accounts
---                 set loan_status = 0
---                 WHERE @P_Account_Number = account_number
---                 INSERT INTO Messages
---                 VALUES('You dont have loans')
---             END;
--- END;
 
 
 

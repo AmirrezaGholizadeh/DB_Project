@@ -199,6 +199,26 @@ def moneytransfer():
 
     return render_template('moneytransfer.html')
 
+@app.route('/accountowner', methods = ['GET', 'POST'])
+def accountowner():
+    if request.method == 'POST':
+        number = request.form.get('account')
+    cursor.execute(f"SELECT dbo.Account_Owner(?)", number)
+
+    for row in cursor.fetchall():
+        print(row[0])
+        result = row[0]
+
+
+    if(result == None):
+        ownerMessage = 'Not found'
+        return render_template('moneytransfer.html', ownerMessage = ownerMessage)
+    else:
+        ownerMessage = result
+        return render_template('moneytransfer.html', ownerMessage = ownerMessage)
+            
+   
+    
 @app.route('/generatepass', methods = ['GET', 'POST'])
 def generatepass():
     if request.method == 'POST':

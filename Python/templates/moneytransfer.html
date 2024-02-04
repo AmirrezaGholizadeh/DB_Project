@@ -33,7 +33,7 @@
     </div>
     <div>
         <h2>Account Owner</h2>
-        <form action="/moneytransfer" method="post">
+        <form action="/accountowner" method="post">
             <div class="form-group">
                 <label for="account">Account Number:</label>
                 <input type="number" id="account" name="account" required>
@@ -64,6 +64,19 @@
             // Show a pop-up alert
             alert("The Password is: " + passwordMessage);
         } else {
+            // Do nothing or perform other actions
+        }
+    </script>
+     <script>
+        // Assuming 'message' is a variable passed from Flask
+        let ownerMessage = "{{ ownerMessage }}";
+        let len = ownerMessage.length
+        // Check if the message is equal to "Unsuccessful"
+        if (ownerMessage === "Not found") {
+            // Show a pop-up alert
+            alert("Not found!");
+        } else if(len > 1){
+            alert("The account Owner is " + ownerMessage)
             // Do nothing or perform other actions
         }
     </script>
