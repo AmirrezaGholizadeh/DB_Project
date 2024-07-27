@@ -10,9 +10,9 @@ CREATE PROCEDURE Register(
 AS
 BEGIN
     DECLARE @salt UNIQUEIDENTIFIER;
-    SET @salt = NEWID();-- Generating the salt for hashing the password
-    DECLARE @hashedPassword VARBINARY(256); -- adjust the length as needed
-    SET @hashedPassword = HASHBYTES('SHA2_256', CAST(CONCAT(@P_Password, @salt) AS varchar(MAX)));--Final hashed password
+    SET @salt = NEWID();
+    DECLARE @hashedPassword VARBINARY(256); 
+    SET @hashedPassword = HASHBYTES('SHA2_256', CAST(CONCAT(@P_Password, @salt) AS varchar(MAX)));
 
     IF NOT EXISTS(SELECT * FROM Users WHERE @P_Username = username)
         BEGIN 
@@ -21,9 +21,9 @@ BEGIN
         END;
     ELSE
         BEGIN
-            -- Aware the python program
+           
             SELECT * FROM Users
-            -- above line is just something TEMPORARY for skipping the error
+            
         END;
 END;
 -------------------
@@ -45,7 +45,7 @@ BEGIN
         DECLARE @User_Salt UNIQUEIDENTIFIER;
         DECLARE @Stored_Password VARCHAR(256);
         SELECT @User_Salt = salt , @Stored_Password = password FROM Users WHERE @P_Username = username;
-        DECLARE @hashedPassword VARBINARY(256); -- adjust the length as needed
+        DECLARE @hashedPassword VARBINARY(256); 
         SET @hashedPassword = HASHBYTES('SHA2_256', CAST(CONCAT(@P_Current_Password, @User_Salt) AS varchar(MAX)));
 
         IF @Stored_Password = @hashedPassword
@@ -61,7 +61,7 @@ BEGIN
     END;
 END;
 
----------------------
+
 
 
 CREATE PROCEDURE Change_Password(
@@ -82,12 +82,12 @@ BEGIN
         DECLARE @User_Salt UNIQUEIDENTIFIER;
         DECLARE @Stored_Password VARCHAR(256);
         SELECT @User_Salt = salt , @Stored_Password = password FROM Users WHERE @P_Username = username;
-        DECLARE @hashedPassword VARBINARY(256); -- adjust the length as needed
+        DECLARE @hashedPassword VARBINARY(256); 
         SET @hashedPassword = HASHBYTES('SHA2_256', CAST(CONCAT(@P_Current_Password, @User_Salt) AS varchar(MAX)));
 
         IF @Stored_Password = @hashedPassword
         BEGIN
-            DECLARE @hashedNewPassword VARBINARY(256); -- adjust the length as needed
+            DECLARE @hashedNewPassword VARBINARY(256); 
             SET @hashedNewPassword = HASHBYTES('SHA2_256', CAST(CONCAT(@P_New_Password, @User_Salt) AS varchar(MAX)));
             UPDATE Users
             set password = @hashedNewPassword
@@ -433,9 +433,6 @@ BEGIN
                     set amount = amount - @P_Payment_Amount
                     WHERE @P_Account_Number = account_number 
 
-                    -- UPDATE Payments
-                    -- set is_paid = 1
-                    -- where account_number = @P_Account_Number and date <= GETDATE();
                     
                     INSERT INTO Messages
                     VALUES('Successfully Paid')
